@@ -1,0 +1,20 @@
+__pycache__# Arquivos Python
+*.pyc
+__pycache__/
+
+# Arquivos de log
+*.log
+
+# Arquivos gerados pelo sistema operacional
+.DS_Store
+Thumbs.db
+
+
+fastapi
+
+/controllers/key-admin.json
+egs-fastapi/
+
+
+.vercel
+.env

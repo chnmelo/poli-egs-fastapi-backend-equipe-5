@@ -1,0 +1,104 @@
+ProjetosController.py {
+    """ def getProjetoTitulo(self, titulo:str):
+        try:
+            docs = self.db.collection('projetos').stream()
+            documentos = []
+            for doc in docs:
+                if doc.id == titulo.lower():
+                    documentos.append(doc.to_dict())
+                    break
+            if len(documentos)>0:
+                return documentos
+            else:
+                return {"msg":"Não encontrado!"}
+        except Exception as e:
+            return {'msg': f'Houve um erro! {e}'}
+        
+    def getPalavrasChaveProjetos(self):
+        try:
+            docs = self.db.collection('projetos').stream()
+            palavras_chave = []
+            for doc in docs:
+                doc_data = doc.to_dict()
+                if 'palavras_chave' in doc_data:
+                    palavras_chave.append(doc_data['palavras_chave'])
+            if len(palavras_chave)>0:
+                return {"key": palavras_chave}
+            else:
+                return {"msg": "Houve um erro!"}
+        except Exception as e:
+            return {'msg': f'Houve um erro! {e}'}
+        
+    def getTecnologiasProjetos(self):
+        try: 
+            docs = self.db.collection('projetos').stream()
+            tecnologias = []
+            for doc in docs:
+                doc_data = doc.to_dict()
+                if 'tecnologias_utilizadas' in doc_data:
+                    tecnologias.append(doc_data['tecnologias_utilizadas'])
+            if len(tecnologias)>0:
+                return {"tecnologias": tecnologias}
+            else:
+                return {"msg": "Houve um erro!"}
+        except Exception as e:
+            return {'msg': f'Houve um erro! {e}'}
+        
+    def getTemasProjetos(self):
+        try:
+            docs = self.db.collection('projetos').stream()
+            temas = []
+            for doc in docs:
+                doc_data = doc.to_dict()
+                if 'tema' in doc_data:
+                    temas.append(doc_data['tema'])
+            if len(temas)>0:
+                return {"temas": temas}
+            else:
+                return {"msg": "Houve um erro!"}
+        except Exception as e:
+            return {'msg': f'Houve um erro! {e}'}
+        
+    def getSemestreProjetos(self):
+        try:
+            docs = self.db.collection('projetos').stream()
+            semestres = []
+            for doc in docs:
+                doc_data = doc.to_dict()
+                if 'semestre' in doc_data:
+                    semestres.append(doc_data['semestre'])
+            if len(semestres)>0:
+                return {"semestres": semestres}
+            else:
+                return {"msg": "Houve um erro!"}        
+        except Exception as e:
+            return {'msg': f'Houve um erro! {e}'} """
+}
+
+ProjetoRoutes.py {
+    """ @router.get("/projetos/{titulo}")
+def busca_titulo_Projeto(titulo:str):
+    projeto = ProjetosController()
+    return projeto.getProjetoTitulo(titulo)
+
+@router.get("/palavrasChave")
+def palavras_chave_Projetos():
+    projeto = ProjetosController()
+    return projeto.getPalavrasChaveProjetos()
+
+@router.get("/tecnologiasProjetos")
+def tecnologiasProjetos():
+    projeto = ProjetosController()
+    return projeto.getTecnologiasProjetos()
+
+@router.get("/temasProjeto")
+def temas_Projetos():
+    projeto = ProjetosController()
+    return projeto.getTemasProjetos()
+
+@router.get("/semestreProjetos")
+def semestre_Projetos():
+    projeto = ProjetosController()
+    return projeto.getSemestreProjetos() """
+}
+

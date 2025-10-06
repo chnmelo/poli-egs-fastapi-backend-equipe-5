@@ -1,0 +1,10 @@
+id user joao: EXWvXM4jIOfVbWtHlKaAr5EdrAX2
+
+alinhar com front end a mudança nos nomes das variáveis de retorno
+
+3. Revisão e Aprovação de Projetos pelos Administradores
+Descrição: Projetos possuem status: “não revisado/aprovado/reprovado” que só pode ser modificado pelos administradores.
+Projeto é postado, porém fica com flag
+
+criar relacao de quais projetos e artigos pertencem ao usuario, aos quais apenas ele e os admins podem editar/deletar
+usuarios podem update/delete seus projetos? ou apenas admin pode
