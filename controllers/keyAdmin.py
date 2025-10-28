@@ -8,19 +8,22 @@ from firebase_admin import credentials
 load_dotenv()
 
 def initialize_firebase():
+    private_key = os.getenv("FIREBASE_PRIVATE_KEY")
+    if not private_key:
+        raise ValueError("A variável de ambiente FIREBASE_PRIVATE_KEY não está definida. Verifique seu arquivo .env.")
+
     # Construct Firebase credentials from environment variables
     firebase_creds = {
         "type": os.getenv("FIREBASE_TYPE"),
         "project_id": os.getenv("FIREBASE_PROJECT_ID"),
         "private_key_id": os.getenv("FIREBASE_PRIVATE_KEY_ID"),
-        "private_key": os.getenv("FIREBASE_PRIVATE_KEY").replace("\\n", "\n"),
+        "private_key": private_key.replace("\\n", "\n"),
         "client_email": os.getenv("FIREBASE_CLIENT_EMAIL"),
         "client_id": os.getenv("FIREBASE_CLIENT_ID"),
         "auth_uri": os.getenv("FIREBASE_AUTH_URI"),
         "token_uri": os.getenv("FIREBASE_TOKEN_URI"),
-        "auth_provider_x509_cert_url": os.getenv("FIREBASE_AUTH_PROVIDER_CERT_URL"),
-        "client_x509_cert_url": os.getenv("FIREBASE_CLIENT_CERT_URL"),
-        "universe_domain": os.getenv("FIREBASE_UNIVERSE_DOMAIN"),
+        "auth_provider_x509_cert_url": os.getenv("FIREBASE_AUTH_PROVIDER_X509_CERT_URL"),
+        "client_x509_cert_url": os.getenv("FIREBASE_CLIENT_X509_CERT_URL"),
     }
 
     # Initialize Firebase Admin SDK if not already initialized
