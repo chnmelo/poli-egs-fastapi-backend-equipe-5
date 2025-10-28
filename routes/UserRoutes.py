@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends
 from controllers.UserController import UserController
 from models.UserModel import UserModel
+from models.ForgotPasswordModel import ForgotPasswordModel
 from utils.checkAdminUser import check_if_admin
 router = APIRouter()
 user_controller = UserController()
@@ -15,8 +16,8 @@ def login(email: str, password: str):
     return user_controller.login(email, password)
 
 @router.post("/forgot-password")
-def forgot_password(email: str):
-    return user_controller.forgot_password(email)
+def forgot_password(request: ForgotPasswordModel):
+    return user_controller.forgot_password(request.email)
 
 @router.get("/user-info/{user_id}", dependencies=[Depends(check_if_admin)])
 def get_user_info(user_id: str):
