@@ -17,6 +17,9 @@ class ProjetosModel(BaseModel):
     tecnologias_utilizadas : List[str]
     video_tecnico : str
     pitch : str
+    
+    imagens: List[str] = []
+    
     revisado: str = "Pendente"
     curtidas: int = 0
     user_curtidas_email: List[str] = []
@@ -37,6 +40,7 @@ class ProjetosModel(BaseModel):
             "tecnologias_utilizadas" : self.tecnologias_utilizadas,
             "video_tecnico" : self.video_tecnico,
             "pitch" : self.pitch,
+            "imagens": self.imagens,
             "revisado": self.revisado,
             "curtidas": self.curtidas,
             "user_curtidas_email": self.user_curtidas_email,
@@ -60,7 +64,11 @@ class ProjetosModel(BaseModel):
     "link_repositorio": "https://github.com/adjailsonferreira/repository_egs_poli",
     "tecnologias_utilizadas": "Python;FastApi;React.js;Firebase;Firestore;MVC",
     "video_tecnico": "https://www.youtube.com/watch?v=wRca2IMJVVk",
-    "pitch": "https://www.youtube.com/watch?v=wRca2IMJVVk"
+    "pitch": "https://www.youtube.com/watch?v=wRca2IMJVVk",
+     "imagens": [
+        "https://storage.googleapis.com/seu-projeto-id.appspot.com/projetos/AUTO_INCREMENT/screenshot1.png",
+        "https://storage.googleapis.com/seu-projeto-id.appspot.com/projetos/AUTO_INCREMENT/diagrama_arquitetura.jpg"
+    ]
 }
 
     '''
