@@ -87,15 +87,19 @@ class UserController:
     def login(self, email: str, password: str):
         try:
             user = self.auth.sign_in_with_email_and_password(email, password)
-
+            user_id = user['localId']
+            id_token = user['idToken']
             # Get the user's token to check for custom claims (e.g., admin)
-            decoded_token = admin_auth.verify_id_token(user['idToken'])
-            is_admin = decoded_token.get('admin', False)
-
+            # decoded_token = admin_auth.verify_id_token(user['idToken'])
+            # is_admin = decoded_token.get('admin', False)
             user_ref = self.db.collection('users').document(user['localId'])
             user_data = user_ref.get().to_dict()
 
-            return {"msg": "Logado com sucesso", "idToken": user['idToken'], "is_admin": user_data['is_admin'], "userId": user['localId'], "username": user_data['username'], "email": email}
+            if not user_data:
+                # Lide com o caso de um usuário existir no Auth mas não no Firestore
+                user_data = {}
+
+            return {"msg": "Logado com sucesso", "idToken": user['idToken'], "is_admin": user_data.get('is_admin', False), "userId": user['localId'], "username": user_data['username'], "email": email}
         except Exception as e:
             raise HTTPException(status_code=400, detail=f"Email ou senha inválidos: {e}")
 
