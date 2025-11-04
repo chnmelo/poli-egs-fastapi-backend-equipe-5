@@ -1,9 +1,9 @@
 import firebase_admin
-from firebase_admin import credentials, storage,datetime
+from firebase_admin import credentials, storage, datetime
 from controllers.keyAdmin import initialize_firebase  # Import initialization function
 import tempfile, shutil, os
 from fastapi import UploadFile, HTTPException
-
+import uuid
 
 class StorageController:
 
@@ -49,6 +49,39 @@ class StorageController:
         #url = blob.generate_signed_url(expiration=datetime.timedelta(minutes=500),method='GET')
         url = blob.public_url
         return {'url':url}
+    
+    def upload_imagem_projeto(self, projeto_id: str, file: UploadFile) -> str:
+        """
+        Faz o upload de UMA imagem para a pasta de um projeto específico.
+        Gera um nome de arquivo único para permitir múltiplas imagens.
+        Retorna a URL pública.
+        """
+        try:
+            # 1. Gerar nome único para a imagem
+            extensao = file.filename.split('.')[-1] if '.' in file.filename else 'jpg'
+            nome_arquivo = f"{uuid.uuid4()}.{extensao}"
+            
+            # 2. Definir o caminho no bucket
+            blob = self.bucket.blob(f"projetos/{projeto_id}/{nome_arquivo}")
+
+            # 3. Salvar o arquivo temporariamente (igual ao seu upload_pdf_artigo)
+            with tempfile.NamedTemporaryFile(delete=False) as tmp:
+                shutil.copyfileobj(file.file, tmp)
+                tmp_path = tmp.name
+            
+            # 4. Fazer o upload pro Firebase a partir do temp file
+            blob.upload_from_filename(tmp_path)
+            blob.make_public()
+            
+            # 5. Limpar o temp file
+            os.remove(tmp_path)
+            
+            # 6. Retornar a URL
+            return blob.public_url
+
+        except Exception as e:
+            # Se der erro em uma imagem, quem chamou (o controller) saberá
+            raise HTTPException(status_code=500, detail=f"Erro ao subir imagem {file.filename}: {str(e)}")
     
     def upload_fotos_integrantes(self,file,file_id):
         bucket = storage.bucket()
