@@ -100,7 +100,7 @@ class UserController:
                 user_data = {}
 
             return {"msg": "Logado com sucesso", "idToken": user['idToken'], 
-                    "is_admin": True,#user_data.get('is_admin', False), 
+                    "is_admin": user_data.get('is_admin', False), 
                     "userId": user['localId'], "username": user_data['username'], "email": email}
         except Exception as e:
             raise HTTPException(status_code=400, detail=f"Email ou senha inválidos: {e}")

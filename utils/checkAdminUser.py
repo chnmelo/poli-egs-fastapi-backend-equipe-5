@@ -21,11 +21,13 @@ def check_if_admin(id_token: str):
             print("Relógio dessincronizado (atrasado). Aguardando 10s para tentar de novo...")
             
             # ESPERA 10 SEGUNDOS (A "GAMBIARRA")
-            time.sleep(10) 
+            time.sleep(20) 
             
             try:
                 # Tenta de novo
                 decoded_token = admin_auth.verify_id_token(id_token)
+                if not decoded_token.get('admin', False):
+                    raise HTTPException(status_code=403, detail="Access forbidden: Admins only.")
                 return decoded_token
             except Exception as retry_e:
                 # Se falhar de novo, desiste
