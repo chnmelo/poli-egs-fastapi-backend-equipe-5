@@ -1,11 +1,25 @@
-FROM python:3.12-slim
+# --- Estágio 1: Construção (Build) ---
+# Dê um nome ao estágio: 'AS build'
+FROM node:18-alpine AS build
 
 WORKDIR /app
 
-COPY . /app
+COPY package*.json ./
+RUN npm install
 
-RUN pip install --upgrade --no-cache-dir -r requirements.txt
-RUN pip install python-multipart
+COPY . .
+# Crie os arquivos estáticos de produção
+RUN npm run build
 
-EXPOSE 8000
-CMD python -m uvicorn app:app --host 0.0.0.0 --port 8000 --reload
+# --- Estágio 2: Servidor (Serve) ---
+# Use uma imagem Nginx super leve
+FROM nginx:1.25-alpine
+
+# Copie os arquivos estáticos do Estágio 1 ('build') para a pasta do Nginx
+COPY --from=build /app/build /usr/share/nginx/html
+
+# O Nginx escuta na porta 80 por padrão
+EXPOSE 80
+
+# Comando para iniciar o Nginx (este é o padrão da imagem Nginx)
+CMD ["nginx", "-g", "daemon off;"]
