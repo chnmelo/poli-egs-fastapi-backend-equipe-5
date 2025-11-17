@@ -16,6 +16,13 @@ app = FastAPI(
     description="RESP API ecomp - Disciplina de Engenharia da Computação - 2024.2",
 )
 
+origins = [
+    "https://www.observatorio.poli.br", # O seu frontend (Produção)
+    "http://www.observatorio.poli.br",  # Por garantia
+    # (Se você testar localmente no futuro, adicione o endereço local)
+    # "http://localhost:5173", 
+]
+
 #Métodos ou ENDPOINT da RESP API
 
 #Login dos admin
@@ -27,7 +34,7 @@ def login(login_data: UserModel):
 #Corpo da requisição, informação enviada pelo cliente para a API
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
