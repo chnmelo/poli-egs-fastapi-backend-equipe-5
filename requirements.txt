@@ -1,6 +1,7 @@
 fastapi
 firebase-admin
 pydantic[email]
+gunicorn
 uvicorn
 pycryptodome
 pyrebase4
