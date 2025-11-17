@@ -1,18 +1,11 @@
-# Este é o Dockerfile do REACT (NODE/NGINX)
-
-# --- Estágio 1: Build ---
-FROM node:18-alpine AS build
+# Este é o Dockerfile do PYTHON
+FROM python:3.10-slim
 WORKDIR /app
 
-# Instala dependências do Node
-COPY package*.json ./
-RUN npm install 
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
-RUN npm run build
+EXPOSE 8000
 
-# --- Estágio 2: Serve ---
-FROM nginx:1.25-alpine
-COPY --from=build /app/build /usr/share/nginx/html
-EXPOSE 80
-CMD ["nginx", "-g", "daemon off;"]
+CMD ["gunicorn", "-w", "4", "-k", "uvicorn.workers.UvicornWorker", "app:app", "--bind", "0.0.0.0:8000"]
