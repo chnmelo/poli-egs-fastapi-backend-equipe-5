@@ -1,4 +1,4 @@
-fastapi
+fastapi[standard]
 firebase-admin
 pydantic[email]
 gunicorn
@@ -10,3 +10,4 @@ python-dotenv
 python-multipart
 setuptools
 sendgrid==6.10.0
+
