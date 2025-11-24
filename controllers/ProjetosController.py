@@ -173,12 +173,15 @@ class ProjetosController(ConexaoFirestore):
             projetos = []
             for projeto in docs:
                 projetos.append(projeto.to_dict())
-            if len(projetos)>0:
-                return {'msg': 'Sucesso ao listar!', 'total de projetos': len(projetos), 'projetos': projetos}
-            else:
-                return {"msg":"Sem projetos!"}
+            
+            # Sempre retorna a estrutura padrão, mesmo vazio
+            return {
+                'msg': 'Sucesso ao listar!', 
+                'total de projetos': len(projetos), 
+                'projetos': projetos 
+            }
         except Exception as e:
-            return {'msg': f'Houve um erro! {e}'}
+            return {'msg': f'Houve um erro! {e}', 'projetos': []}
 
     def getProjetoFiltroMultiplos(self, filtros: dict):
         try:
