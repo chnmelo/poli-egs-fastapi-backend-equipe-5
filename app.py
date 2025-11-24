@@ -9,6 +9,8 @@ from routes.ArtigoRoutes import router as artigo_router
 from routes.UserRoutes import router as user_router
 from routes.ProdutoRoutes import router as produto_router
 from routes.DuvidasRoutes import router as duvida_router
+from dotenv import load_dotenv
+load_dotenv()
 
 app = FastAPI(
     title="API - UPE Projetos e-comp de EGS",

@@ -9,6 +9,9 @@ load_dotenv()
 
 def initialize_firebase():
     private_key = os.getenv("FIREBASE_PRIVATE_KEY")
+    if private_key:
+        # Isso converte os caracteres literais "\n" em quebras de linha reais
+        private_key = private_key.replace('\\n', '\n')
     if not private_key:
         raise ValueError("A variável de ambiente FIREBASE_PRIVATE_KEY não está definida. Verifique seu arquivo .env.")
 
