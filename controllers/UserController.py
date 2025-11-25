@@ -196,3 +196,22 @@ class UserController:
             return {"msg": "Usuário deletado com sucesso", "username": user_data['username'], "email": user_data['email'], "is_admin": user_data['is_admin'], "userId": user_id, }
         except Exception as e:
             raise HTTPException(status_code=400, detail=f"Erro ao deletar usuário: {e}")
+
+    def set_admin_claim(self, email: str):
+        try:
+            # Find the user by email
+            user = admin_auth.get_user_by_email(email)
+            user_id = user.uid
+
+            # Set the custom claim 'admin' to True
+            admin_auth.set_custom_user_claims(user_id, {'admin': True})
+
+            # Update the 'is_admin' field in Firestore for consistency
+            user_ref = self.db.collection('users').document(user_id)
+            user_ref.update({'is_admin': True})
+
+            return {"msg": f"Permissão de administrador concedida com sucesso para o usuário {email}"}
+        except admin_auth.UserNotFoundError:
+            raise HTTPException(status_code=404, detail=f"Usuário com email {email} não encontrado.")
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Ocorreu um erro: {e}")

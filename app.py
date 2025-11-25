@@ -9,6 +9,7 @@ from routes.ArtigoRoutes import router as artigo_router
 from routes.UserRoutes import router as user_router
 from routes.ProdutoRoutes import router as produto_router
 from routes.DuvidasRoutes import router as duvida_router
+from routes.AdminRoutes import router as admin_router
 
 app = FastAPI(
     title="API - UPE Projetos e-comp de EGS",
@@ -40,3 +41,4 @@ app.include_router(projeto_router)
 app.include_router(artigo_router)
 app.include_router(user_router)
 app.include_router(duvida_router)
+app.include_router(admin_router, prefix="/admin", tags=["Admin"])
