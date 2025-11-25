@@ -1,10 +1,13 @@
 from typing import List
 
+from firebase_admin import firestore
 from controllers.ConexaoFirestore import ConexaoFirestore
 from models.ProjetosModel import ProjetosModel
 from utils.MD5 import MD5
-from fastapi import HTTPException
+from fastapi import HTTPException, UploadFile
+import uuid
 import datetime, os
+from controllers.StorageController import StorageController
 #from google.cloud import storage
 
 class ProjetosController(ConexaoFirestore):
@@ -20,6 +23,10 @@ class ProjetosController(ConexaoFirestore):
             dados.id = key_doc
             dados.revisado = 'Pendente'
             dados.curtidas = 0
+            
+            if dados.imagens is None:
+                dados.imagens = []
+                
             docs = self.db.collection('projetos').document(key_doc)
 
             if docs.get().exists:
@@ -54,6 +61,73 @@ class ProjetosController(ConexaoFirestore):
         except Exception as e:
             return {'msg': f'Houve um erro! {str(e)}', 'erro': str(e)} """
 
+    def adicionar_imagens_projeto(self, projeto_id: str, files: List[UploadFile]) -> dict:
+        """
+        Coordena o upload de múltiplas imagens para um projeto.
+        """
+        try:
+            project_ref = self.db.collection("projetos").document(projeto_id)
+            if not project_ref.get().exists:
+                raise HTTPException(status_code=404, detail="Projeto não encontrado")
+            
+            storage_ctrl = StorageController()
+            urls_adicionadas = []
+            
+            for file in files:
+                if file.filename:
+                    url = storage_ctrl.upload_imagem_projeto(projeto_id, file)
+                    urls_adicionadas.append(url)
+            
+            if urls_adicionadas:
+                project_ref.update({
+                    "imagens": firestore.ArrayUnion(urls_adicionadas)
+                })
+
+            projeto_atualizado = project_ref.get().to_dict()
+            return {
+                "msg": f"{len(urls_adicionadas)} imagens adicionadas com sucesso.",
+                "projeto": projeto_atualizado
+            }
+
+        except Exception as e:
+            raise e
+    
+    def remover_imagem_projeto(self, projeto_id: str, imagem_url: str) -> dict:
+        """
+        Remove a referência de uma imagem do Firestore e tenta deletar
+        o arquivo correspondente do Firebase Storage.
+        """
+        try:
+            # 1. Verificar se o projeto existe
+            project_ref = self.db.collection("projetos").document(projeto_id)
+            if not project_ref.get().exists:
+                raise HTTPException(status_code=404, detail="Projeto não encontrado")
+
+            # 2. Remover a URL da lista no Firestore (Obrigatório)
+            # ArrayRemove remove todas as instâncias dessa URL da lista
+            project_ref.update({
+                "imagens": firestore.ArrayRemove([imagem_url])
+            })
+
+            # 3. Tentar deletar o arquivo do Storage (Recomendado)
+            # Usamos um try/except aqui para que, se a deleção do
+            # arquivo falhar, a remoção do banco de dados ainda seja um sucesso.
+            try:
+                storage_ctrl = StorageController()
+                storage_ctrl.deletar_imagem_projeto(imagem_url)
+            except Exception as e:
+                # Apenas loga o erro, mas não falha a requisição
+                print(f"AVISO: Falha ao deletar arquivo do Storage. Erro: {str(e)}")
+
+            projeto_atualizado = project_ref.get().to_dict()
+            return {
+                "msg": "Imagem removida com sucesso.",
+                "projeto": projeto_atualizado
+            }
+
+        except Exception as e:
+            raise e
+    
     def updateProjeto(self, dados: ProjetosModel):
         try:
             # Certifique-se de que há campos para atualizar
@@ -61,6 +135,11 @@ class ProjetosController(ConexaoFirestore):
                 return {'msg': 'Nenhum campo para atualizar.', 'projeto': None}
             
             doc_ref = self.db.collection('projetos').document(dados.get("id"))
+            
+            if "imagens" in dados:
+                raise HTTPException(status_code=400, 
+                    detail="Use o endpoint /projetos/{id}/imagens para gerenciar imagens.")
+                
             write_result = doc_ref.set(dados, merge=True)
             projeto = doc_ref.get().to_dict()
             return {
@@ -69,6 +148,7 @@ class ProjetosController(ConexaoFirestore):
             }
         except Exception as e:
             return {'msg': f'Houve um erro! {str(e)}', 'erro': str(e)}
+        
     def deleteProjeto(self, id:str):
         try:
             projeto = self.db.collection('projetos').document(id).get().to_dict()
@@ -93,12 +173,15 @@ class ProjetosController(ConexaoFirestore):
             projetos = []
             for projeto in docs:
                 projetos.append(projeto.to_dict())
-            if len(projetos)>0:
-                return {'msg': 'Sucesso ao listar!', 'total de projetos': len(projetos), 'projetos': projetos}
-            else:
-                return {"msg":"Sem projetos!"}
+            
+            # Sempre retorna a estrutura padrão, mesmo vazio
+            return {
+                'msg': 'Sucesso ao listar!', 
+                'total de projetos': len(projetos), 
+                'projetos': projetos 
+            }
         except Exception as e:
-            return {'msg': f'Houve um erro! {e}'}
+            return {'msg': f'Houve um erro! {e}', 'projetos': []}
 
     def getProjetoFiltroMultiplos(self, filtros: dict):
         try:
@@ -235,6 +318,36 @@ class ProjetosController(ConexaoFirestore):
         except Exception as e:
             return {'msg': f'Houve um erro! {e}'}
 
+    def deletar_comentario_projeto(self, id: str, comentario: dict):
+        try:
+            doc_ref = self.db.collection('projetos').document(id)
+            doc = doc_ref.get()
+
+            if doc.exists:
+                projeto_data = doc.to_dict()
+                comentarios = projeto_data.get("comentarios", [])
+                
+                # Procura e remove o comentário idêntico
+                if comentario in comentarios:
+                    comentarios.remove(comentario)
+                    doc_ref.update({"comentarios": comentarios})
+                    return {"msg": "Comentário removido com sucesso!", "comentarios": comentarios}
+                else:
+                    # Tenta encontrar manualmente caso haja pequenas diferenças de tipo
+                    for c in comentarios:
+                        if c.get('username') == comentario.get('username') and \
+                           c.get('comentario') == comentario.get('comentario') and \
+                           c.get('data') == comentario.get('data'):
+                            comentarios.remove(c)
+                            doc_ref.update({"comentarios": comentarios})
+                            return {"msg": "Comentário removido com sucesso!", "comentarios": comentarios}
+                            
+                    return {"msg": "Comentário não encontrado."}
+            else:
+                return {"msg": "Projeto não encontrado!"}
+
+        except Exception as e:
+            return {'msg': f'Houve um erro! {e}'}
 
 
 

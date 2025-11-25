@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Form, HTTPException, UploadFile, File, Depends, Request, Query
+from fastapi import APIRouter, Form, HTTPException, UploadFile, File, Path, Body, Depends, Request, Query
 from controllers.ProjetosController import ProjetosController
 from controllers.StorageController import StorageController
 from models.ProjetosModel import ProjetosModel
@@ -6,6 +6,7 @@ from models.ProjetosUpdateModel import ProjetosUpdateModel
 import os
 from utils.checkAdminUser import check_if_admin, check_if_login
 from typing import Optional, List
+from pydantic import BaseModel
 
 router = APIRouter()
 
@@ -28,7 +29,46 @@ async def upload_logo_projeto(id_projeto: str, file: UploadFile = File(...)):
         return saida
     else:
         return {"erro":"Limite de tempo."}
-    
+
+
+### ========= ADD IMAGENS AO PROJETO ==================
+@router.post("/projetos/{id}/imagens/", dependencies=[Depends(check_if_login)])
+def adicionar_imagens_ao_projeto(
+    id: str = Path(..., description="ID do projeto"),
+    files: List[UploadFile] = File(..., description="Uma ou mais imagens para upload")
+):
+    """
+    CRIAÇÃO: Adiciona uma ou mais imagens a um projeto.
+    """
+    if not files or all(not f.filename for f in files):
+        raise HTTPException(status_code=400, detail="Nenhum arquivo enviado.")
+        
+    # Chama o novo método no seu controller
+    return ProjetosController().adicionar_imagens_projeto(projeto_id=id, files=files)
+
+class ImagemUrlModel(BaseModel):
+    imagem_url: str
+
+@router.delete("/projetos/{id}/imagem/", dependencies=[Depends(check_if_login)])
+def remover_imagem_do_projeto(
+    id: str = Path(..., description="ID do projeto"),
+    dados: ImagemUrlModel = Body(..., description="JSON contendo a URL da imagem a ser removida")
+):
+    """
+    EDIÇÃO: Remove uma imagem específica da lista do projeto.
+    """
+    if not dados.imagem_url:
+        raise HTTPException(status_code=400, detail="URL da imagem é obrigatória.")
+        
+    # Chama o novo método no seu controller
+    return ProjetosController().remover_imagem_projeto(
+        projeto_id=id, 
+        imagem_url=dados.imagem_url
+    )
+
+### ========= ADD IMAGENS AO PROJETO ==================
+
+
 @router.post("/upload_fotos_integrantes/", dependencies=[Depends(check_if_login)])
 async def upload_fotos_integrantes(files: List[UploadFile] = File(...), file_ids: List[str] = Form(...)):
     saidas = []
@@ -181,3 +221,29 @@ def comentar_projeto(id: str, usuario: str, comentario: str):
         raise HTTPException(status_code=404, detail="Projeto não encontrado")
 
     return resultado
+
+class ComentarioDeleteModel(BaseModel):
+    username: str
+    comentario: str
+    data: str
+
+@router.post("/projetos/{id}/comentar", dependencies=[Depends(check_if_login)])
+def comentar_projeto(id: str, usuario: str, comentario: str):
+    projeto_controller = ProjetosController()
+    resultado = projeto_controller.comentar_projeto(id, usuario, comentario)
+
+    if resultado.get("msg") == "Projeto não encontrado!":
+        raise HTTPException(status_code=404, detail="Projeto não encontrado")
+
+    return resultado
+
+# --- NOVA ROTA ADICIONADA ---
+@router.delete("/projetos/{id}/comentar", dependencies=[Depends(check_if_login)])
+def deletar_comentario(
+    id: str, 
+    dados: ComentarioDeleteModel, 
+    # O id_token é pego automaticamente pelo Depends(check_if_login) via query param
+):
+    # Converte o modelo Pydantic para dicionário simples
+    comentario_dict = dados.dict()
+    return ProjetosController().deletar_comentario_projeto(id, comentario_dict)

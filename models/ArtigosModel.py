@@ -14,6 +14,8 @@ class ArtigosModel(BaseModel):
     arquivo: str
     revisado: str = "Pendente"
     resumo: str
+    git_link: str = ''
+    article_link: str = ''
     
     def toMaps(self):
         return {
@@ -26,7 +28,9 @@ class ArtigosModel(BaseModel):
             "palavras_chave": self.palavras_chave,
             "arquivo": self.arquivo,
             "revisado": self.revisado,
-            "resumo": self.resumo
+            "resumo": self.resumo,
+            "git_link": self.git_link,
+            "article_link": self.article_link
         }
 
     def getKeyDoc(self):

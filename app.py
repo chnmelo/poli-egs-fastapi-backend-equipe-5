@@ -10,12 +10,22 @@ from routes.UserRoutes import router as user_router
 from routes.ProdutoRoutes import router as produto_router
 from routes.DuvidasRoutes import router as duvida_router
 from routes.AdminRoutes import router as admin_router
+from dotenv import load_dotenv
+load_dotenv()
 
 app = FastAPI(
     title="API - UPE Projetos e-comp de EGS",
     version="0.0.1",
     description="RESP API ecomp - Disciplina de Engenharia da Computação - 2024.2",
 )
+
+origins = [
+    "http://localhost:3000",
+    "https://www.observatorio.poli.br", # O seu frontend (Produção)
+    "http://www.observatorio.poli.br",  # Por garantia
+    # (Se você testar localmente no futuro, adicione o endereço local)
+    # "http://localhost:5173", 
+]
 
 #Métodos ou ENDPOINT da RESP API
 
@@ -28,7 +38,7 @@ def login(login_data: UserModel):
 #Corpo da requisição, informação enviada pelo cliente para a API
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
