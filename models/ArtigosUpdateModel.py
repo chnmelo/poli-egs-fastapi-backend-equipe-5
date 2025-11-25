@@ -11,3 +11,5 @@ class ArtigosUpdateModel(BaseModel):
     arquivo: Optional[str] = None
     revisado: Optional[str] = None
     resumo: Optional[str] = None
+    git_link: Optional[str] = None
+    article_link: Optional[str] = None
