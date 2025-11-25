@@ -19,6 +19,7 @@ app = FastAPI(
 )
 
 origins = [
+    "http://localhost:3000",
     "https://www.observatorio.poli.br", # O seu frontend (Produção)
     "http://www.observatorio.poli.br",  # Por garantia
     # (Se você testar localmente no futuro, adicione o endereço local)
