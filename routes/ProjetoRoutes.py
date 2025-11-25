@@ -221,3 +221,29 @@ def comentar_projeto(id: str, usuario: str, comentario: str):
         raise HTTPException(status_code=404, detail="Projeto não encontrado")
 
     return resultado
+
+class ComentarioDeleteModel(BaseModel):
+    username: str
+    comentario: str
+    data: str
+
+@router.post("/projetos/{id}/comentar", dependencies=[Depends(check_if_login)])
+def comentar_projeto(id: str, usuario: str, comentario: str):
+    projeto_controller = ProjetosController()
+    resultado = projeto_controller.comentar_projeto(id, usuario, comentario)
+
+    if resultado.get("msg") == "Projeto não encontrado!":
+        raise HTTPException(status_code=404, detail="Projeto não encontrado")
+
+    return resultado
+
+# --- NOVA ROTA ADICIONADA ---
+@router.delete("/projetos/{id}/comentar", dependencies=[Depends(check_if_login)])
+def deletar_comentario(
+    id: str, 
+    dados: ComentarioDeleteModel, 
+    # O id_token é pego automaticamente pelo Depends(check_if_login) via query param
+):
+    # Converte o modelo Pydantic para dicionário simples
+    comentario_dict = dados.dict()
+    return ProjetosController().deletar_comentario_projeto(id, comentario_dict)

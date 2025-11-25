@@ -318,6 +318,36 @@ class ProjetosController(ConexaoFirestore):
         except Exception as e:
             return {'msg': f'Houve um erro! {e}'}
 
+    def deletar_comentario_projeto(self, id: str, comentario: dict):
+        try:
+            doc_ref = self.db.collection('projetos').document(id)
+            doc = doc_ref.get()
+
+            if doc.exists:
+                projeto_data = doc.to_dict()
+                comentarios = projeto_data.get("comentarios", [])
+                
+                # Procura e remove o comentário idêntico
+                if comentario in comentarios:
+                    comentarios.remove(comentario)
+                    doc_ref.update({"comentarios": comentarios})
+                    return {"msg": "Comentário removido com sucesso!", "comentarios": comentarios}
+                else:
+                    # Tenta encontrar manualmente caso haja pequenas diferenças de tipo
+                    for c in comentarios:
+                        if c.get('username') == comentario.get('username') and \
+                           c.get('comentario') == comentario.get('comentario') and \
+                           c.get('data') == comentario.get('data'):
+                            comentarios.remove(c)
+                            doc_ref.update({"comentarios": comentarios})
+                            return {"msg": "Comentário removido com sucesso!", "comentarios": comentarios}
+                            
+                    return {"msg": "Comentário não encontrado."}
+            else:
+                return {"msg": "Projeto não encontrado!"}
+
+        except Exception as e:
+            return {'msg': f'Houve um erro! {e}'}
 
 
 
