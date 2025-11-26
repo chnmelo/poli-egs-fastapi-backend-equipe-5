@@ -14,7 +14,8 @@ fastapi
 
 /controllers/key-admin.json
 egs-fastapi/
-
+/venv/
+/env/
 
 .vercel
 .env

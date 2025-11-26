@@ -20,11 +20,12 @@ app = FastAPI(
 )
 
 origins = [
-    "http://localhost:3000",
     "https://www.observatorio.poli.br", # O seu frontend (Produção)
     "http://www.observatorio.poli.br",  # Por garantia
     # (Se você testar localmente no futuro, adicione o endereço local)
-    # "http://localhost:5173", 
+    # "http://localhost:5173", # URL do seu Frontend React
+    # "http://127.0.0.1:5173",
+    "*"
 ]
 
 #Métodos ou ENDPOINT da RESP API
