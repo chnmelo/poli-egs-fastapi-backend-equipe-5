@@ -15,11 +15,11 @@ router = APIRouter()
 def inserir_Projeto(dados:ProjetosModel):
     return ProjetosController().setProjeto(dados)
 
-@router.post("/upload_logo_projeto/{id_projeto}", dependencies=[Depends(check_if_login)])
+@router.post("/upload_logo_projeto/{id_projeto}/", dependencies=[Depends(check_if_login)])
 async def upload_logo_projeto(id_projeto: str, file: UploadFile = File(...)):
     #print(file.filename)
     # Salve o arquivo temporariamente
-    temp_file_path = f'uploads/projetos/{file.filename}'
+    temp_file_path = f'uploads/projetos/{file.filename}/'
     with open(temp_file_path, "wb") as temp_file:
         temp_file.write(await file.read())
 
@@ -75,7 +75,7 @@ async def upload_fotos_integrantes(files: List[UploadFile] = File(...), file_ids
     for file in files:
 
     # Salve o arquivo temporariamente
-        temp_file_path = f'uploads/projetos/{file.filename}'
+        temp_file_path = f'uploads/projetos/{file.filename}/'
         with open(temp_file_path, "wb") as temp_file:
             temp_file.write(await file.read())
         saida = StorageController().upload_fotos_integrantes(temp_file_path,file_ids[files.index(file)])
@@ -87,7 +87,7 @@ async def upload_fotos_integrantes(files: List[UploadFile] = File(...), file_ids
     else:
         return {"erro":"Limite de tempo."}
     
-@router.get("/view_fotos_integrantes/{id_foto}")
+@router.get("/view_fotos_integrantes/{id_foto}/")
 async def view_fotos_integrantes(id_foto: str):
     if id_foto == 'null': return {'url':None}
     return StorageController().view_fotos_integrantes(id_foto)
@@ -133,7 +133,7 @@ def obter_projeto(id: str):
         raise HTTPException(status_code=404, detail="Projeto não encontrado")
     return projeto
 
-@router.get("/view_logo_projeto/{id_projeto}")
+@router.get("/view_logo_projeto/{id_projeto}/")
 async def view_logo_projeto(id_projeto: str):
     return StorageController().view_logo_projeto(id_projeto)
 
@@ -172,17 +172,17 @@ def filtrar_projetos(
 
 
 
-@router.get("/projetos_pendentes", dependencies=[Depends(check_if_admin)])
+@router.get("/projetos_pendentes/", dependencies=[Depends(check_if_admin)])
 def pendentes():
     projeto = ProjetosController()
     return projeto.getProjetosPendentes()
 
-@router.get("/projetos_aprovados", dependencies=[Depends(check_if_admin)])
+@router.get("/projetos_aprovados/", dependencies=[Depends(check_if_admin)])
 def aprovados():
     projeto = ProjetosController()
     return projeto.getProjetosAprovados()
 
-@router.get("/projetos_reprovados", dependencies=[Depends(check_if_admin)])
+@router.get("/projetos_reprovados/", dependencies=[Depends(check_if_admin)])
 def reprovados():
     projeto = ProjetosController()
     return projeto.getProjetosReprovados()
@@ -192,7 +192,7 @@ async def atualizar_projetos_revisados(id: str, novo_revisado: str):
     projeto = ProjetosController()
     return projeto.updateRevisadoProjetos(id, novo_revisado)
 
-@router.get("/projetos/{id}/status")
+@router.get("/projetos/{id}/status/")
 def ver_status_projeto(id: str):
     projeto_controller = ProjetosController()
     status = projeto_controller.getStatusProjeto(id)
@@ -201,7 +201,7 @@ def ver_status_projeto(id: str):
     return status
 
 
-@router.post("/projetos/{id}/curtir", dependencies=[Depends(check_if_login)])
+@router.post("/projetos/{id}/curtir/", dependencies=[Depends(check_if_login)])
 def curtir_projeto(id: str, decoded_token=Depends(check_if_login)):
     email_usuario = decoded_token.get("email")
     projeto_controller = ProjetosController()
@@ -212,7 +212,7 @@ def curtir_projeto(id: str, decoded_token=Depends(check_if_login)):
 
     return resultado
 
-@router.post("/projetos/{id}/comentar", dependencies=[Depends(check_if_login)])
+@router.post("/projetos/{id}/comentar/", dependencies=[Depends(check_if_login)])
 def comentar_projeto(id: str, usuario: str, comentario: str):
     projeto_controller = ProjetosController()
     resultado = projeto_controller.comentar_projeto(id, usuario, comentario)
@@ -227,7 +227,7 @@ class ComentarioDeleteModel(BaseModel):
     comentario: str
     data: str
 
-@router.post("/projetos/{id}/comentar", dependencies=[Depends(check_if_login)])
+@router.post("/projetos/{id}/comentar/", dependencies=[Depends(check_if_login)])
 def comentar_projeto(id: str, usuario: str, comentario: str):
     projeto_controller = ProjetosController()
     resultado = projeto_controller.comentar_projeto(id, usuario, comentario)
@@ -238,7 +238,7 @@ def comentar_projeto(id: str, usuario: str, comentario: str):
     return resultado
 
 # --- NOVA ROTA ADICIONADA ---
-@router.delete("/projetos/{id}/comentar", dependencies=[Depends(check_if_login)])
+@router.delete("/projetos/{id}/comentar/", dependencies=[Depends(check_if_login)])
 def deletar_comentario(
     id: str, 
     dados: ComentarioDeleteModel, 

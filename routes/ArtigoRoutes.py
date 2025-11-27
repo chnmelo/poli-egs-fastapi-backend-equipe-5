@@ -47,18 +47,18 @@ def atualizar_artigo(id: str, dados: ArtigosUpdateModel):
 def deletar_artigo(id: str):
     return ArtigosController().deleteArtigo(id)
 
-@router.post("/upload_pdf_artigo/{id_artigo}")
+@router.post("/upload_pdf_artigo/{id_artigo}/")
 async def upload_artigo(id_artigo: str, file: UploadFile = File(...)):
     try:
         return StorageController().upload_pdf_artigo(id_artigo, file)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erro ao fazer upload do arquivo: {str(e)}")
 
-@router.get("/view_pdf_artigo/{id_projeto}")
+@router.get("/view_pdf_artigo/{id_projeto/}")
 async def view_pdf_artigo(id_projeto: str):
     return StorageController().view_pdf_artigo(id_projeto)
 
-@router.get("/artigos_pendentes", dependencies=[Depends(check_if_admin)])
+@router.get("/artigos_pendentes/", dependencies=[Depends(check_if_admin)])
 def pendentes():
     artigo = ArtigosController()
     return artigo.getArtigosPendentes()

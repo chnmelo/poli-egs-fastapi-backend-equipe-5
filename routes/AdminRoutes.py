@@ -8,7 +8,7 @@ user_controller = UserController()
 class AdminClaimPayload(BaseModel):
     email: EmailStr
 
-@router.post("/set-admin", summary="Conceder permissão de administrador a um usuário")
+@router.post("/set-admin/", summary="Conceder permissão de administrador a um usuário")
 def set_admin_claim(payload: AdminClaimPayload):
     """
     Endpoint para atribuir permissões de administrador a um usuário existente.

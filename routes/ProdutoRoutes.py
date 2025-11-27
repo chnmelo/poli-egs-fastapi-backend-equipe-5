@@ -49,7 +49,7 @@ async def upload_produto(id_produto: str, file: UploadFile = File(...)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erro ao fazer upload do arquivo: {str(e)}")
 
-@router.get("/view_pdf_produto/{id_produto}")
+@router.get("/view_pdf_produto/{id_produto}/")
 async def view_pdf_produto(id_produto: str):
     return StorageController().view_pdf_artigo(id_produto)
 
