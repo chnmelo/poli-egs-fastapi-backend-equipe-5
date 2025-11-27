@@ -23,9 +23,7 @@ origins = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
     "https://www.observatorio.poli.br",
-    "https://observatorio.poli.br",
-    "http://www.observatorio.poli.br",
-    "http://observatorio.poli.br"
+    "https://observatorio.poli.br"
 ]
 
 #Métodos ou ENDPOINT da RESP API
