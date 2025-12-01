@@ -17,18 +17,24 @@ def inserir_Projeto(dados:ProjetosModel):
 
 @router.post("/upload_logo_projeto/{id_projeto}/", dependencies=[Depends(check_if_login)])
 async def upload_logo_projeto(id_projeto: str, file: UploadFile = File(...)):
-    #print(file.filename)
-    # Salve o arquivo temporariamente
-    temp_file_path = f'uploads/projetos/{file.filename}/'
-    with open(temp_file_path, "wb") as temp_file:
-        temp_file.write(await file.read())
+    # Garante que o diretório existe
+    os.makedirs('uploads/projetos', exist_ok=True)
+    
+    # CORREÇÃO: Removida a barra '/' do final do caminho
+    temp_file_path = f'uploads/projetos/{file.filename}'
+    
+    try:
+        with open(temp_file_path, "wb") as temp_file:
+            temp_file.write(await file.read())
 
-    saida = StorageController().upload_logo_projeto(id_projeto, temp_file_path)
-    if saida:
-        os.remove(temp_file_path)
+        saida = StorageController().upload_logo_projeto(id_projeto, temp_file_path)
         return saida
-    else:
-        return {"erro":"Limite de tempo."}
+    except Exception as e:
+        return {"erro": f"Erro no upload: {str(e)}"}
+    finally:
+        # Remove o arquivo temporário se ele foi criado
+        if os.path.exists(temp_file_path):
+            os.remove(temp_file_path)
 
 
 ### ========= ADD IMAGENS AO PROJETO ==================
@@ -71,36 +77,42 @@ def remover_imagem_do_projeto(
 
 @router.post("/upload_fotos_integrantes/", dependencies=[Depends(check_if_login)])
 async def upload_fotos_integrantes(files: List[UploadFile] = File(...), file_ids: List[str] = Form(...)):
+    os.makedirs('uploads/projetos', exist_ok=True)
+    
     saidas = []
-    for file in files:
+    
+    # Itera sobre os arquivos e seus IDs correspondentes
+    for index, file in enumerate(files):
+        # Proteção caso a lista de IDs seja menor que a de arquivos
+        if index >= len(file_ids):
+            break
+            
+        file_id = file_ids[index]
+        
+        temp_file_path = f'uploads/projetos/{file.filename}'
+        
+        try:
+            with open(temp_file_path, "wb") as temp_file:
+                temp_file.write(await file.read())
+            
+            saida = StorageController().upload_fotos_integrantes(temp_file_path, file_id)
+            if saida:
+                saidas.append(saida)
+        except Exception as e:
+            print(f"Erro ao subir foto {file.filename}: {e}")
+        finally:
+            if os.path.exists(temp_file_path):
+                os.remove(temp_file_path)
 
-    # Salve o arquivo temporariamente
-        temp_file_path = f'uploads/projetos/{file.filename}/'
-        with open(temp_file_path, "wb") as temp_file:
-            temp_file.write(await file.read())
-        saida = StorageController().upload_fotos_integrantes(temp_file_path,file_ids[files.index(file)])
-        if saida:
-            os.remove(temp_file_path)
-            saidas.append(saida)
     if len(saidas) > 0:
         return saidas
     else:
-        return {"erro":"Limite de tempo."}
+        return {"erro": "Nenhuma foto foi salva."}
     
 @router.get("/view_fotos_integrantes/{id_foto}/")
 async def view_fotos_integrantes(id_foto: str):
     if id_foto == 'null': return {'url':None}
     return StorageController().view_fotos_integrantes(id_foto)
-
-""" @router.put("/projeto_update/", dependencies=[Depends(check_if_login)])
-def update_Projeto(dados:ProjetosModel):
-    projeto = ProjetosController()
-    return projeto.updateProjeto(dados) """
-
-""" @router.put("/projetos/{id}/", dependencies=[Depends(check_if_admin)])
-def atualizar_projeto(id: str, dados: ProjetosModel):
-    dados_dict = dados.model_dump(exclude_unset=True)
-    return ProjetosController().updateProjeto(dados_dict) """
 
 @router.put("/projetos/{id}/", dependencies=[Depends(check_if_admin)])
 def atualizar_projeto(id: str, dados: ProjetosUpdateModel):
@@ -237,7 +249,6 @@ def comentar_projeto(id: str, usuario: str, comentario: str):
 
     return resultado
 
-# --- NOVA ROTA ADICIONADA ---
 @router.delete("/projetos/{id}/comentar/", dependencies=[Depends(check_if_login)])
 def deletar_comentario(
     id: str, 

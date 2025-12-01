@@ -1,73 +1,65 @@
 from firebase_admin import auth as admin_auth
-from fastapi import HTTPException
+from fastapi import HTTPException, Request
 import time
+# Importar a inicialização para garantir conexão
+from controllers.keyAdmin import initialize_firebase 
 
-def check_if_admin(id_token: str):
+# Garante a inicialização
+try:
+    initialize_firebase()
+except Exception:
+    pass
+
+def get_token_from_request(request: Request):
+    # 1. Tenta pegar do Header
+    auth_header = request.headers.get('Authorization')
+    if auth_header and auth_header.startswith('Bearer '):
+        return auth_header.split(' ')[1]
+    
+    # 2. Fallback para URL
+    return request.query_params.get('id_token')
+
+def check_if_admin(request: Request):
+    id_token = get_token_from_request(request)
+    
+    if not id_token:
+        raise HTTPException(status_code=401, detail="Token não fornecido.")
+
     try:
-        # Tenta verificar e decodificar o token
-        decoded_token = admin_auth.verify_id_token(id_token)
+        # Adiciona 5 segundos de tolerância de relógio (clock skew)
+        decoded_token = admin_auth.verify_id_token(id_token, clock_skew_seconds=5)
         
-        # Verifica se o usuário tem a permissão de admin
         if not decoded_token.get('admin', False):
-            raise HTTPException(status_code=403, detail="Access forbidden: Admins only.")
+            raise HTTPException(status_code=403, detail="Acesso proibido: Apenas administradores.")
         
         return decoded_token
     
-    except admin_auth.InvalidIdTokenError as e:
-        error_message = str(e)
-        
-        # Se o erro for "Token used too early"
-        if "Token used too early" in error_message:
-            print("Relógio dessincronizado (atrasado). Aguardando 10s para tentar de novo...")
-            
-            # ESPERA 10 SEGUNDOS (A "GAMBIARRA")
-            time.sleep(20) 
-            
-            try:
-                # Tenta de novo
-                decoded_token = admin_auth.verify_id_token(id_token)
-                if not decoded_token.get('admin', False):
-                    raise HTTPException(status_code=403, detail="Access forbidden: Admins only.")
-                return decoded_token
-            except Exception as retry_e:
-                # Se falhar de novo, desiste
-                raise HTTPException(status_code=401, detail=f"token error after retry: {retry_e}")
-
-        # Se for outro erro de token (expirado, assinatura, etc.)
-        raise HTTPException(status_code=401, detail=f"token error: {e}")
-    
     except Exception as e:
-        # Qualquer erro relacionado ao token é tratado aqui
-        raise HTTPException(status_code=403, detail=f"token error: {e}")
+        print(f"!!! ERRO ADMIN VERIFY: {e}") # OLHE NO TERMINAL
+        raise HTTPException(status_code=401, detail=f"Sessão inválida: {str(e)}")
 
 
-def check_if_login(id_token: str):
+def check_if_login(request: Request):
+    id_token = get_token_from_request(request)
+
+    if not id_token:
+        print("!!! ERRO: Token não encontrado no request.")
+        raise HTTPException(status_code=401, detail="Token não fornecido.")
+
     try:
-        decoded_token = admin_auth.verify_id_token(id_token)
-        if not decoded_token:
-            raise HTTPException(status_code=403, detail="Access forbidden: User not logged in.")
+        # Adiciona 5 segundos de tolerância de relógio
+        decoded_token = admin_auth.verify_id_token(id_token, clock_skew_seconds=5)
         return decoded_token
-    except admin_auth.InvalidIdTokenError as e:
-        error_message = str(e)
         
-        # Se o erro for "Token used too early"
-        if "Token used too early" in error_message:
-            print("Relógio dessincronizado (atrasado). Aguardando 10s para tentar de novo...")
-            
-            # ESPERA 10 SEGUNDOS (A "GAMBIARRA")
-            time.sleep(10) 
-            
-            try:
-                # Tenta de novo
-                decoded_token = admin_auth.verify_id_token(id_token)
-                return decoded_token
-            except Exception as retry_e:
-                # Se falhar de novo, desiste
-                raise HTTPException(status_code=401, detail=f"token error after retry: {retry_e}")
+    except ValueError as e:
+        print(f"!!! ERRO CONFIG FIREBASE: {e}")
+        try:
+            initialize_firebase()
+            return admin_auth.verify_id_token(id_token, clock_skew_seconds=5)
+        except Exception as e2:
+             print(f"!!! ERRO RE-INIT: {e2}")
+             raise HTTPException(status_code=500, detail="Erro interno de autenticação.")
 
-        # Se for outro erro de token (expirado, assinatura, etc.)
-        raise HTTPException(status_code=401, detail=f"token error: {e}")
-    
     except Exception as e:
-        # Qualquer erro relacionado ao token é tratado aqui
-        raise HTTPException(status_code=403, detail=f"token error: {e}")
+        print(f"!!! ERRO LOGIN VERIFY: {e}") # OLHE NO TERMINAL, O ERRO ESTARÁ AQUI
+        raise HTTPException(status_code=401, detail=f"Token inválido: {str(e)}")

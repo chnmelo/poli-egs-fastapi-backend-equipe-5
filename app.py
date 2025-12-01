@@ -3,36 +3,35 @@ from fastapi.middleware.cors import CORSMiddleware
 from controllers.UserController import UserController
 from models.UserModel import UserModel
 import os
+from pydantic import BaseModel 
+from typing import Optional
 from firebase_admin import auth as admin_auth
-from routes.ProjetoRoutes import router as projeto_router
-from routes.ArtigoRoutes import router as artigo_router
-from routes.UserRoutes import router as user_router
-from routes.ProdutoRoutes import router as produto_router
-from routes.DuvidasRoutes import router as duvida_router
-from routes.AdminRoutes import router as admin_router
+from routes import (
+    UserRoutes, 
+    ProjetoRoutes, 
+    ArtigoRoutes, 
+    ProdutoRoutes, 
+    DuvidasRoutes, 
+    AdminRoutes
+)
 from dotenv import load_dotenv
 load_dotenv()
 
 app = FastAPI(
     title="API - UPE Projetos e-comp de EGS",
-    version="0.0.1",
+    version="1.0.1",
     description="RESP API ecomp - Disciplina de Engenharia da Computação - 2024.2",
 )
 
 origins = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
+    "http://localhost:3000",
     "https://www.observatorio.poli.br",
-    "https://observatorio.poli.br"
+    "https://observatorio.poli.br",
+    "*"
 ]
 
-#Métodos ou ENDPOINT da RESP API
-
-#Login dos admin
-""" @app.post("/login/")
-def login(login_data: UserModel):
-    user = UserController()
-    return user.login(login_data.username, login_data.password) """
 
 #Corpo da requisição, informação enviada pelo cliente para a API
 app.add_middleware(
@@ -43,11 +42,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include routes
-# app.include_router(projeto_router, prefix="/projetos")
-app.include_router(produto_router)
-app.include_router(projeto_router)
-app.include_router(artigo_router)
-app.include_router(user_router)
-app.include_router(duvida_router)
-app.include_router(admin_router, prefix="/admin", tags=["Admin"])
+app.include_router(UserRoutes.router)
+app.include_router(ProjetoRoutes.router)
+app.include_router(ArtigoRoutes.router)
+app.include_router(ProdutoRoutes.router)
+app.include_router(DuvidasRoutes.router)
+app.include_router(AdminRoutes.router)

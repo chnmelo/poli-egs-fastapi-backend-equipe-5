@@ -221,3 +221,42 @@ class UserController:
             raise HTTPException(status_code=404, detail=f"Usuário com email {email} não encontrado.")
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Ocorreu um erro: {e}")
+
+    def get_my_profile(self, user_id: str):
+        try:
+            # Busca dados no Firestore
+            user_ref = self.db.collection('users').document(user_id)
+            user_data = user_ref.get().to_dict()
+            
+            # Se não achar no Firestore, busca no Auth (fallback)
+            if not user_data:
+                user_record = admin_auth.get_user(user_id)
+                return {"username": "", "email": user_record.email, "is_admin": False}
+
+            return {
+                "username": user_data.get('username'),
+                "email": user_data.get('email'),
+                "is_admin": user_data.get('is_admin')
+            }
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=f"Erro ao buscar perfil: {e}")
+
+    def update_profile(self, user_id: str, username: str = None, password: str = None):
+        try:
+            response_data = {}
+            
+            # 1. Atualiza Username no Firestore
+            if username:
+                self.db.collection('users').document(user_id).update({'username': username})
+                response_data['username'] = username
+
+            # 2. Atualiza Senha no Firebase Auth
+            if password:
+                if len(password) < 6:
+                    raise Exception("A senha deve ter pelo menos 6 caracteres.")
+                admin_auth.update_user(user_id, password=password)
+                response_data['password_updated'] = True
+
+            return {"msg": "Perfil atualizado com sucesso!", **response_data}
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=f"Erro ao atualizar perfil: {e}")
