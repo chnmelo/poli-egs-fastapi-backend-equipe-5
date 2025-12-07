@@ -3,6 +3,9 @@ from fastapi import HTTPException, Request
 import time
 # Importar a inicialização para garantir conexão
 from controllers.keyAdmin import initialize_firebase 
+import logging
+
+logger = logging.getLogger(__name__)
 
 # Garante a inicialização
 try:
@@ -27,7 +30,7 @@ def check_if_admin(request: Request):
 
     try:
         # Adiciona 5 segundos de tolerância de relógio (clock skew)
-        decoded_token = admin_auth.verify_id_token(id_token, clock_skew_seconds=5)
+        decoded_token = admin_auth.verify_id_token(id_token, clock_skew_seconds=60)
         
         if not decoded_token.get('admin', False):
             raise HTTPException(status_code=403, detail="Acesso proibido: Apenas administradores.")
@@ -35,7 +38,7 @@ def check_if_admin(request: Request):
         return decoded_token
     
     except Exception as e:
-        print(f"!!! ERRO ADMIN VERIFY: {e}") # OLHE NO TERMINAL
+        logger.info(f"!!! ERRO ADMIN VERIFY: {e}") # OLHE NO TERMINAL
         raise HTTPException(status_code=401, detail=f"Sessão inválida: {str(e)}")
 
 
@@ -43,23 +46,23 @@ def check_if_login(request: Request):
     id_token = get_token_from_request(request)
 
     if not id_token:
-        print("!!! ERRO: Token não encontrado no request.")
+        logger.info("!!! ERRO: Token não encontrado no request.")
         raise HTTPException(status_code=401, detail="Token não fornecido.")
 
     try:
         # Adiciona 5 segundos de tolerância de relógio
-        decoded_token = admin_auth.verify_id_token(id_token, clock_skew_seconds=5)
+        decoded_token = admin_auth.verify_id_token(id_token, clock_skew_seconds=60)
         return decoded_token
         
     except ValueError as e:
-        print(f"!!! ERRO CONFIG FIREBASE: {e}")
+        logger.info(f"!!! ERRO CONFIG FIREBASE: {e}")
         try:
             initialize_firebase()
-            return admin_auth.verify_id_token(id_token, clock_skew_seconds=5)
+            return admin_auth.verify_id_token(id_token, clock_skew_seconds=60)
         except Exception as e2:
-             print(f"!!! ERRO RE-INIT: {e2}")
-             raise HTTPException(status_code=500, detail="Erro interno de autenticação.")
+             logger.info(f"!!! ERRO RE-INIT: {e2}")
+             raise HTTPException(status_code=500, detail=f"Erro interno de autenticação: {str(e2)}")
 
     except Exception as e:
-        print(f"!!! ERRO LOGIN VERIFY: {e}") # OLHE NO TERMINAL, O ERRO ESTARÁ AQUI
+        logger.info(f"!!! ERRO LOGIN VERIFY: {e}") # OLHE NO TERMINAL, O ERRO ESTARÁ AQUI
         raise HTTPException(status_code=401, detail=f"Token inválido: {str(e)}")
