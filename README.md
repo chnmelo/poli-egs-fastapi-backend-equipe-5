@@ -234,3 +234,49 @@ Correção Crítica de Autenticação: Solucionado o problema de expiração pre
 Suporte à Interatividade: Criados e estabilizados os endpoints da API para a nova funcionalidade de Comentários em Projetos e Artigos.
 
 Consolidação do Banco de Dados: Executadas tarefas de limpeza do Banco de Dados (remoção de dados de teste) e inserção de projetos reais, preparando a plataforma para o deploy final.
+
+
+. Relatório Detalhado de Novos Bugs Encontrados 
+
+Bug 1: Nenhuma Validação no Upload de Arquivos (Risco de Segurança)
+
+   * Arquivos Afetados: poli-egs-fastapi-backend-equipe-5/controllers/StorageController.py e as rotas que o utilizam
+     (ArtigoRoutes.py, ProdutoRoutes.py).
+   * Descrição: As funções de upload (upload_pdf_artigo, upload_imagem_projeto) salvam arquivos no Firebase Storage sem
+     validar o tipo ou o tamanho do arquivo.
+   * Impacto: Um usuário pode enviar arquivos perigosos (executáveis, scripts) disfarçados de PDFs ou imagens. Também
+     pode enviar arquivos gigantescos, gerando custos altos no Firebase e sobrecarregando o servidor.
+   * Sugestão de Correção: Em StorageController.py, antes de fazer o upload, adicionar uma verificação do content_type e
+     do tamanho do arquivo, rejeitando-o com um erro HTTP 400 se for inválido.
+
+Bug 2: Nomes de Arquivo Previsíveis e Sobrescrita Insegura
+
+   * Arquivo Afetado: poli-egs-fastapi-backend-equipe-5/controllers/StorageController.py.
+   * Descrição: As funções upload_pdf_artigo e upload_logo_projeto nomeiam os arquivos usando o ID do artigo/projeto
+     (ex: 123.pdf). Isso torna os nomes fáceis de adivinhar e causa a sobrescrita do arquivo antigo se um novo for
+     enviado para o mesmo ID.
+   * Impacto: Permite que usuários adivinhem URLs de arquivos privados e pode levar à perda de dados por sobrescrita não
+     intencional. A função upload_imagem_projeto já usa uma abordagem melhor com uuid.
+   * Sugestão de Correção: Modificar todas as funções de upload para usar uuid.uuid4() para gerar nomes de arquivo
+     únicos e não previsíveis, salvando a URL completa no banco de dados.
+
+Bug 3: Código Duplicado e Confuso
+
+   * Arquivos Afetados: poli-egs-fastapi-backend-equipe-5/routes/ProdutoRoutes.py e controllers/StorageController.py.
+   * Descrição: A rota para upload de PDF de "produto" chama incorretamente a função upload_pdf_artigo. Além disso, a
+     lógica para salvar um arquivo temporariamente é repetida em várias funções dentro do StorageController.
+   * Impacto: Dificulta a manutenção do código. Uma futura alteração na lógica de upload precisaria ser feita em
+     múltiplos lugares, e o nome errado da função pode confundir desenvolvedores.
+   * Sugestão de Correção: Refatorar o código duplicado para uma função interna e renomear/criar funções com nomes
+     claros e específicos para cada tipo de upload.
+
+Bug 8: Alteração de Nome de Usuário Não Persiste Após Recarregar a Página
+
+   * Arquivos Afetados: poli-egs-fastapi-backend-equipe-5/controllers/UserController.py (Causa Raiz) e poli-egs-frontend-equipe-5/src/pages/User/Profile.tsx (Sintoma)
+   * Descrição: Na página "Meu Perfil", a alteração do "Nome de Usuário" funciona visualmente, mas é revertida ao
+     recarregar a página (F5).
+   * Impacto: Causa confusão e frustração ao usuário, pois a alteração não é permanente, indicando dessincronização
+     entre a aplicação e o banco de dados.
+   * Sugestão de Correção: Backend (Correção Principal): Modificar a função update_profile em UserController.py para atualizar o nome de usuário tanto no Firestore (como já faz)       quanto no serviço Firebase Authentication, atualizando o campo display_name.
+
+##Os bugs 04, 05, 06, 07 e 09 estão no frontend.
