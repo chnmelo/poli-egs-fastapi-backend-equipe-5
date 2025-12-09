@@ -153,4 +153,84 @@ Isso executará o backend na porta 8000 do seu host local. Entao voce pode acess
 - **SILVIO ANDRÉ VITAL JUNIOR (GERENTE DE PROJETO)**
 - **ARTHUR SOBRAL DE MACÊDO (DEV FRONT-END E BACK-END)**
 
+## 2025.2##
+✨ Atualização 02 (Verificação de E-mail)
+A Sprint 2 focou em adicionar uma camada de segurança crítica ao processo de autenticação. A lógica de verificação de e-mail foi integrada diretamente no fluxo de registro e login, usando a função/controller USERCONTROLLER.PY.
 
+Registro (Cadastro): Foi adicionado o envio automático do e-mail de verificação do Firebase assim que um novo usuário é criado.
+
+Login (Autenticação): Foi incluída uma checagem na função de login para garantir que o e-mail do usuário foi verificado antes de permitir o acesso. O backend agora retorna uma mensagem de erro específica caso o usuário tente entrar sem ter confirmado o e-mail.
+
+
+✨ Atualização 03 (Correções e Preparação de Infraestrutura)
+A Sprint 3 concentrou-se na correção de bugs críticos e na preparação da arquitetura do sistema para futuras implantações e funcionalidades de segurança.
+
+Correção de Bug de Token: Corrigido o bug de expiração de token que ocorria ao tentar aprovar ou reprovar artigos.
+
+Infraestrutura UPE: Iniciada a disponibilização da arquitetura do sistema na infraestrutura da UPE.
+
+Planejamento de Segurança e Refatoração: O planejamento inclui tarefas futuras importantes para o backend, como:
+- Implementação de Segurança na Query String.
+- Refatoração do Backend para Imports.
+
+Criação de Endpoints para Redefinição de Senha e Verificação de Token, suportando a tela "Esqueci Minha Senha" desenvolvida no frontend.
+
+✨ Atualização 04 (Gestão de Imagens de Projetos)
+A Sprint 4 focou em adicionar a funcionalidade Full-Stack para gerenciar imagens (screenshots) dos projetos, preparando o backend para suportar a visualização e edição de conteúdo.
+
+Integração com Firebase Storage:
+- Foram criadas funções na classe Storage para inserir imagens no Firebase Storage.
+
+Funções de Serviço de Projetos:
+- Duas novas funções foram criadas na classe Projetos para manipulação das imagens.
+
+Novos Endpoints (API):
+- Foram criados dois novos endpoints: um para inserir e outro para remover imagens de um projeto específico.
+
+
+✨ Atualização 05 (Correção Crítica de Token)
+O backend recebeu uma correção crítica de autenticação e agora suporta totalmente a funcionalidade de gestão de imagens, sendo a base para a documentação visual dos projetos.
+
+Correção Crítica de Token de Autenticação:
+Resolvida uma falha causada por divergência de fuso horário entre os contêineres do sistema, que resultava na expiração prematura do token.
+O problema foi solucionado com a padronização do horário brasileiro como referência global para todos os processos de autenticação.
+
+Suporte à Gestão de Imagens: O backend consolida o suporte para o upload de imagens, trabalhando em conjunto com o Firebase Storage, conforme implementado na Sprint 4.
+
+
+✨ Atualização 06 (Suporte a Consultas Complexas)
+O backend foi aprimorado para suportar as consultas complexas e detalhadas exigidas pela nova interface de filtragem do frontend.
+
+A Sprint 6 focou em garantir que os endpoints da API (FastAPI) pudessem processar com eficiência as requisições de filtragem de projetos por múltiplos parâmetros (Área, Semestre, Nome/Palavra-chave e Integrantes).
+
+Isso assegura que o frontend receba dados coerentes e rápidos, suportando a exibição da vitrine de projetos e a página de detalhes com todas as informações (incluindo links de imagens e vídeos).
+
+
+✨ Atualização 07 (Suporte para Artigos e Contato)
+O backend foi expandido para suportar o novo conteúdo público de artigos e o envio de mensagens pelo formulário de contato.
+
+Endpoints de Artigos: O backend agora fornece os endpoints necessários para o frontend listar e acessar o conteúdo de Artigos Científicos.
+
+Gestão de Contato: Foram implementados os serviços para receber e processar as submissões do formulário "Entre em Contato", garantindo que a equipe receba as mensagens dos usuários.
+
+APIs de Detalhes: O backend assegura que as requisições de detalhes de projeto forneçam dados completos, incluindo informações estruturadas sobre equipe, tecnologias e links, suportando a visualização detalhada do frontend.
+
+
+✨ Atualização 09 (Consolidação de Segurança e APIs de Interatividade)
+A Sprint final reforçou a segurança e a resiliência do backend para suportar sessões de uso prolongado e implementou os endpoints necessários para a nova área de interatividade.
+
+Endpoints de Comentários: Implementados os endpoints na API (FastAPI) para o recebimento e gestão dos novos Comentários de usuários em Projetos e Artigos.
+
+Segurança de Sessão Otimizada:
+Otimizamos a validação de tokens no backend, garantindo que o sistema mantenha a estabilidade mesmo durante sessões de uso prolongado (ex: avaliar ou aprovar múltiplos artigos).
+Foi consolidado o fluxo robusto de Recuperação de Conta, com geração segura de tokens e validação de e-mail.
+
+
+🏆 Atualização Final (Estabilização de Backoffice e Bases de Dados)
+A Sprint final garantiu a estabilidade e a segurança das APIs, essenciais para o funcionamento ininterrupto da área administrativa e das novas funcionalidades interativas.
+
+Correção Crítica de Autenticação: Solucionado o problema de expiração prematura do token de autenticação no Backoffice (que causava o deslogamento). A correção envolveu a padronização do fuso horário brasileiro nos contêineres e a implementação de uma lógica de re-tentativa automática de token em caso de falha.
+
+Suporte à Interatividade: Criados e estabilizados os endpoints da API para a nova funcionalidade de Comentários em Projetos e Artigos.
+
+Consolidação do Banco de Dados: Executadas tarefas de limpeza do Banco de Dados (remoção de dados de teste) e inserção de projetos reais, preparando a plataforma para o deploy final.
